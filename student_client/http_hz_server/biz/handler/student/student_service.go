@@ -13,6 +13,7 @@ import (
 	"github.com/cloudwego/kitex/pkg/klog"
 	"github.com/cloudwego/kitex/pkg/loadbalance"
 	etcd "github.com/kitex-contrib/registry-etcd"
+	"main/hz/biz/model/student"
 	_ "main/hz/biz/model/student"
 	"net/http"
 
@@ -24,6 +25,14 @@ import (
 
 var path = "/Users/xiaofeng/workplace_go/Go-learning/api_gateway/idl/student.thrift" // depends on current directory
 var url = "http://localhost:8888"
+
+func getErrorBizResponse(code int32, msg string) *student.Response {
+	return &student.Response{
+		Code: code,
+		Msg:  msg,
+		Data: "",
+	}
+}
 
 func getClient() genericclient.Client {
 	// 标明注册中心地址
@@ -54,9 +63,16 @@ func getClient() genericclient.Client {
 // @router /add-student-info [POST]
 func AddStudent(ctx context.Context, c *app.RequestContext) {
 	cli := getClient()
+	var err error
+	var saveStudentRequest student.SaveStudentReq
+	err = c.BindAndValidate(&saveStudentRequest)
+	if err != nil {
+		c.String(consts.StatusBadRequest, err.Error())
+		return
+	}
 	body := map[string]interface{}{
-		"studentNo":   "13",
-		"studentName": "xiaofeng_i",
+		"studentNo":   saveStudentRequest.StudentNo,
+		"studentName": saveStudentRequest.StudentName,
 	}
 	data, err := json.Marshal(body)
 	if err != nil {
@@ -87,28 +103,33 @@ func AddStudent(ctx context.Context, c *app.RequestContext) {
 // @router /query [GET]
 func QueryStudent(ctx context.Context, c *app.RequestContext) {
 	cli := getClient()
+	var err error
+	var queryStudentRequest student.QueryStudentReq
+	err = c.BindAndValidate(&queryStudentRequest)
+	if err != nil {
+		c.String(consts.StatusBadRequest, err.Error())
+		return
+	}
 	body := map[string]interface{}{
-		"studentNo": "13",
+		"studentNo": queryStudentRequest.StudentNo,
 	}
 	data, err := json.Marshal(body)
 	if err != nil {
 		klog.Fatalf("body marshal failed: %v", err)
-		c.JSON(consts.StatusInternalServerError, nil)
+		c.JSON(consts.StatusInternalServerError, getErrorBizResponse(consts.StatusInternalServerError, err.Error()))
 	}
 	req, err := http.NewRequest(http.MethodGet, url+"/query", bytes.NewBuffer(data))
 	if err != nil {
 		klog.Fatalf("new http request failed: %v", err)
-		c.JSON(consts.StatusInternalServerError, nil)
+		c.JSON(consts.StatusInternalServerError, getErrorBizResponse(consts.StatusInternalServerError, err.Error()))
 	}
 	customReq, err := generic.FromHTTPRequest(req)
 	if err != nil {
-		klog.Fatalf("convert request failed: %v", err)
-		c.JSON(consts.StatusInternalServerError, nil)
+		c.JSON(consts.StatusInternalServerError, getErrorBizResponse(consts.StatusInternalServerError, err.Error()))
 	}
 	resp, err := cli.GenericCall(context.Background(), "", customReq)
 	if err != nil {
-		klog.Fatalf("generic call failed: %v", err)
-		c.JSON(consts.StatusInternalServerError, nil)
+		c.JSON(consts.StatusInternalServerError, getErrorBizResponse(consts.StatusInternalServerError, err.Error()))
 	}
 	realResp := resp.(*generic.HTTPResponse)
 	klog.Infof("method1 response, status code: %v, headers: %v, body: %v\n", realResp.StatusCode, realResp.Header, realResp.Body)
@@ -119,28 +140,33 @@ func QueryStudent(ctx context.Context, c *app.RequestContext) {
 // @router /query2 [GET]
 func QueryStudent2(ctx context.Context, c *app.RequestContext) {
 	cli := getClient()
+	var err error
+	var queryStudentRequest student.QueryStudentReq
+	err = c.BindAndValidate(&queryStudentRequest)
+	if err != nil {
+		c.String(consts.StatusBadRequest, err.Error())
+		return
+	}
 	body := map[string]interface{}{
-		"studentNo": "13",
+		"studentNo": queryStudentRequest.StudentNo,
 	}
 	data, err := json.Marshal(body)
 	if err != nil {
 		klog.Fatalf("body marshal failed: %v", err)
-		c.JSON(consts.StatusInternalServerError, nil)
+		c.JSON(consts.StatusInternalServerError, getErrorBizResponse(consts.StatusInternalServerError, err.Error()))
 	}
-	req, err := http.NewRequest(http.MethodGet, url+"/query2", bytes.NewBuffer(data))
+	req, err := http.NewRequest(http.MethodGet, url+"/query", bytes.NewBuffer(data))
 	if err != nil {
 		klog.Fatalf("new http request failed: %v", err)
-		c.JSON(consts.StatusInternalServerError, nil)
+		c.JSON(consts.StatusInternalServerError, getErrorBizResponse(consts.StatusInternalServerError, err.Error()))
 	}
 	customReq, err := generic.FromHTTPRequest(req)
 	if err != nil {
-		klog.Fatalf("convert request failed: %v", err)
-		c.JSON(consts.StatusInternalServerError, nil)
+		c.JSON(consts.StatusInternalServerError, getErrorBizResponse(consts.StatusInternalServerError, err.Error()))
 	}
 	resp, err := cli.GenericCall(context.Background(), "", customReq)
 	if err != nil {
-		klog.Fatalf("generic call failed: %v", err)
-		c.JSON(consts.StatusInternalServerError, nil)
+		c.JSON(consts.StatusInternalServerError, getErrorBizResponse(consts.StatusInternalServerError, err.Error()))
 	}
 	realResp := resp.(*generic.HTTPResponse)
 	klog.Infof("method1 response, status code: %v, headers: %v, body: %v\n", realResp.StatusCode, realResp.Header, realResp.Body)
