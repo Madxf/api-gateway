@@ -37,7 +37,7 @@ func watchIdl() {
 	defer watcher.Close()
 
 	// 需要监控的文件夹路径
-	dirToWatch := "/Users/xiaofeng/workplace_go/Go-learning/api_gateway/idl"
+	dirToWatch := "/Users/xiaofeng/workplace_go/api-gateway/idl"
 
 	// 递归添加文件夹及其子文件夹到监控列表
 	err = filepath.Walk(dirToWatch, func(path string, info os.FileInfo, err error) error {
@@ -128,7 +128,7 @@ func doUpdateIdl(command string) {
 func changeToExecDir() {
 
 	// 将当前工作目录更改为执行程序所在目录
-	err := os.Chdir("/Users/xiaofeng/workplace_go/Go-learning/api_gateway/student_client/http_hz_server")
+	err := os.Chdir("/Users/xiaofeng/workplace_go/api-gateway/student_client/http_hz_server")
 	if err != nil {
 		log.Fatalf("更改工作目录失败: %v", err)
 	}
