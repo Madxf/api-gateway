@@ -16,6 +16,7 @@ import (
 	"main/hz/biz/model/student"
 	_ "main/hz/biz/model/student"
 	"net/http"
+	"sync"
 
 	"log"
 
@@ -25,6 +26,7 @@ import (
 
 var path = "/Users/xiaofeng/workplace_go/Go-learning/api_gateway/idl/student.thrift" // depends on current directory
 var url = "http://localhost:8888"
+var clientCache = sync.Map{}
 
 func getErrorBizResponse(code int32, msg string) *student.Response {
 	return &student.Response{
@@ -62,7 +64,13 @@ func getClient() genericclient.Client {
 // AddStudent .
 // @router /add-student-info [POST]
 func AddStudent(ctx context.Context, c *app.RequestContext) {
-	cli := getClient()
+	var cli genericclient.Client
+	cli_, ok := clientCache.Load("addStudent")
+	if !ok {
+		cli = getClient()
+		clientCache.Store("queryStudent", cli)
+	}
+	cli = cli_.(genericclient.Client)
 	var err error
 	var saveStudentRequest student.SaveStudentReq
 	err = c.BindAndValidate(&saveStudentRequest)
@@ -102,7 +110,13 @@ func AddStudent(ctx context.Context, c *app.RequestContext) {
 // QueryStudent .
 // @router /query [GET]
 func QueryStudent(ctx context.Context, c *app.RequestContext) {
-	cli := getClient()
+	var cli genericclient.Client
+	cli_, ok := clientCache.Load("queryStudent")
+	if !ok {
+		cli = getClient()
+		clientCache.Store("queryStudent", cli)
+	}
+	cli = cli_.(genericclient.Client)
 	var err error
 	var queryStudentRequest student.QueryStudentReq
 	err = c.BindAndValidate(&queryStudentRequest)
